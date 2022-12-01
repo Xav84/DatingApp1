@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, map } from 'rxjs';
+import { environment } from 'src/environments/environment';
 import { User } from '../_models/user';
 
 @Injectable({
@@ -8,7 +9,7 @@ import { User } from '../_models/user';
 })
 // services are singleton so they are destroy when the app stops or is shut down by user
 export class AccountService {
-  baseUrl = 'https://localhost:5001/api/';
+  baseUrl = environment.apiUrl;
   // on met le type User | null , represente un union type quand une variable peut etre de un ou plus de type
   private currentUserSource = new BehaviorSubject<User | null>(null);
   // On met un $ a la fin par convention quand la var represente un observable

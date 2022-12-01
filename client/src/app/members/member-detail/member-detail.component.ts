@@ -14,6 +14,8 @@ export class MemberDetailComponent implements OnInit {
   galleryOptions: NgxGalleryOptions[] = [];
   galleryImages: NgxGalleryImage[] = [];
 
+  // ici on va chercher memberService pour retrouver le membre via l'API
+  // activateRoute est le router de Angular , il permet d'activer la route au click sur l icone detail de membre
   constructor(private memberService: MembersService, private route: ActivatedRoute) { }
 
   ngOnInit(): void {
@@ -44,9 +46,12 @@ export class MemberDetailComponent implements OnInit {
     return imageUrls;
   }
 
+  //va chercher les detail du membre via l'API
   loadMember() {
     const username = this.route.snapshot.paramMap.get('username');
+    console.log("USERNAME:",username);
     if(!username) return;
+    // appel la fonction getMember() de members.service.ts
     this.memberService.getMember(username).subscribe({
       next: member => {
         this.member = member;

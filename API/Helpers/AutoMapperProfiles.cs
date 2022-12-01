@@ -15,6 +15,7 @@ namespace API.Helpers
                 // permet de retourner le resultat de CalculateAge() dans la prop Age de MemberDto
                 .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.DateOfBirth.CalculateAge()));
             CreateMap<Photo, PhotoDto>();
+            CreateMap<MemberUpdateDto, AppUser>();
        } 
     }
 }

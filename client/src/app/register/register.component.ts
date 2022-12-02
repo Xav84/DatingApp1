@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { AccountService } from '../_services/account.service';
 import { ToastrService } from 'ngx-toastr';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -12,24 +14,62 @@ export class RegisterComponent implements OnInit {
   Conversely, @Output() lets the child send data to a parent component.*/
   //@Input() usersFromHomeComponent: any;
   @Output() cancelRegister = new EventEmitter();
-  model: any = {}
+  registerForm: FormGroup = new FormGroup({});
+  maxDate: Date = new Date;
+  validationErrors: string[] | undefined;
 
-  constructor(private acountService: AccountService, private toastr: ToastrService) { }
+  constructor(private acountService: AccountService, private toastr: ToastrService, private fb: FormBuilder, private router: Router) { }
 
   ngOnInit(): void {
+    this.initializeForm();
+    this.maxDate.setFullYear(this.maxDate.getFullYear() -18);
+  }
+
+  initializeForm() {
+    this.registerForm = this.fb.group({
+      gender: ['male'],
+      username: ['', Validators.required],
+      knownAs: ['', Validators.required],
+      dateOfBirth: ['', Validators.required],
+      city: ['', Validators.required],
+      country: ['', Validators.required],
+      password: ['', [Validators.required,Validators.minLength(4),Validators.maxLength(8)]],
+      confirmPassword: ['', [Validators.required, this.matchValues('password')]],
+    })
+    // valide automatiquement si si il y a un changement au 2 input password
+    this.registerForm.controls['password'].valueChanges.subscribe({
+      next: () => this.registerForm.controls['confirmPassword'].updateValueAndValidity()
+    })
+  }
+
+  matchValues(matchTo: string): ValidatorFn {
+    return (control: AbstractControl) => {
+      return control.value === control.parent?.get(matchTo)?.value ? null : {notMatching: true}
+    }
   }
 
   register() {
-    this.acountService.register(this.model).subscribe({
+    const dob = this.getDateOnly(this.registerForm.controls['dateOfBirth'].value);
+    const values = {...this.registerForm.value, dateOfBirth: dob};
+    this.acountService.register(values).subscribe({
       next: () => {
-        this.cancel();
+        this.router.navigateByUrl('/members')
       },
-      error: error =>this.toastr.error(error.error)
+      error: error =>
+      this.validationErrors = error
     })
   }
 
   //Envoi au parent un boolean false
   cancel() {
     this.cancelRegister.emit(false);
+  }
+
+ /* retourne la date sans les minutes et timezone*/
+  private getDateOnly(dob: string | undefined) {
+    if (!dob) return;
+    let theDob = new Date(dob);
+    return new Date(theDob.setMinutes(theDob.getMinutes()-theDob.
+      getTimezoneOffset())).toISOString().slice(0,10);
   }
 }

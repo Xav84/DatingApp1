@@ -52,7 +52,9 @@ namespace API.Controllers
        {
           // trouver le user dans la bd avec le username peux pas utiliser Find() vu que username n'est pas un PK
           // SingleOrDefaultAsync() retourne null ou le user on l'utilise vu que les username seront unique
-          var user = await _context.Users.SingleOrDefaultAsync(x =>
+          var user = await _context.Users
+          .Include(p => p.Photos)
+          .SingleOrDefaultAsync(x =>
           x.UserName == loginDto.Username);
 
           if (user == null) return Unauthorized("invalid username");
@@ -70,7 +72,8 @@ namespace API.Controllers
           return new UserDto
           {
           Username = user.UserName,
-          Token = _tokenService.CreateToken(user)
+          Token = _tokenService.CreateToken(user),
+          PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
           };
 
        }
